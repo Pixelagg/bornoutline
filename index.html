@@ -336,6 +336,18 @@
   .hero .field button { padding-left: .5em; }
   .hero .consent { font-size: 12px; }
   .hero .msg { font-size: 14px; }
+  /* Brevo: paneles de mensaje ocultos hasta que su programa los muestre */
+  .sib-form-message-panel { display: none; margin: 0; }
+  .sib-form-message-panel.msg.err { color: var(--error); }
+  .input--hidden { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
+  #sib-container, #sib-form-container { display: grid; gap: 14px; }
+  #sib-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 980px; }
+  .sib-input, .entry_block { display: grid; gap: 6px; }
+  .entry__error { font-size: 12px; color: var(--error); }
+  .entry__error:empty { display: none; }
+  .sib-hide-loader-icon { display: none; }
+  .progress-indicator__icon { width: .7em; height: .7em; margin-right: .3em; fill: currentColor; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .drawer { display: grid; }
   .drawer-tab {
@@ -438,18 +450,37 @@
   <main class="hero" id="club">
     <p class="kicker">Join the Club</p>
     <h1 class="statement">Early access to the first collection.</h1>
-        <form id="join" name="club" novalidate>
-          <p hidden><label>Leave empty <input name="company" tabindex="-1" autocomplete="off"></label></p>
-          <div class="field">
-            <input id="email" name="email" type="email" autocomplete="email" placeholder="Email address" aria-label="Email" required>
-            <button type="submit">Join →</button>
+        <!-- Formulario oficial de Brevo con el diseño de la web (lo envía el programa de Brevo, main.js). -->
+        <div id="sib-form-container" class="sib-form-container">
+          <div id="error-message" class="sib-form-message-panel msg err" role="alert">
+            <span class="sib-form-message-panel__inner-text">We could not validate your request. Check your email address and try again.</span>
           </div>
-          <label class="consent" for="consent">
-            <input id="consent" name="consent" type="checkbox" value="yes">
-            <span>I agree to receive news from Born Outline and have read the <a href="#privacy">Privacy Policy</a>.</span>
-          </label>
-          <p class="msg" id="msg" role="status" aria-live="polite"></p>
-        </form>
+          <div id="success-message" class="sib-form-message-panel msg" role="status">
+            <span class="sib-form-message-panel__inner-text">Request received. Check your inbox — your letter is on its way.</span>
+          </div>
+          <div id="sib-container">
+            <form id="sib-form" method="POST" action="https://4813e819.sibforms.com/serve/MUIFACJaauiM1SZYxFGajGkM8hJ8ln8hAW07TIJVL2el9utsYrRvMHMcOpBYssQV66Gm1miVIqrWww1jH-XyaFtOff7tus36ggQYJGsSHyTrBUin70blk4pqbfNVadBD76HiLIXfLcEZ5OlwPx1NReuLENSyIMe8IMM-HgqSZwyZEF2Zf6hbn5Ehd4KkIvhSqmSZLeGM9qCENcXBTQ==" data-type="subscription">
+              <div class="sib-input sib-form-block">
+                <div class="form__entry entry_block">
+                  <div class="field entry__field">
+                    <input class="input" type="email" id="EMAIL" name="EMAIL" autocomplete="email" placeholder="Email address" aria-label="Email" data-required="true" required>
+                    <button class="sib-form-block__button sib-form-block__button-with-loader" form="sib-form" type="submit">
+                      <svg class="icon clickable__icon progress-indicator__icon sib-hide-loader-icon" viewBox="0 0 512 512" aria-hidden="true"><path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-131.652-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z"/></svg>
+                      Join →
+                    </button>
+                  </div>
+                  <label class="entry__error entry__error--primary"></label>
+                </div>
+              </div>
+              <label class="consent" for="consent">
+                <input id="consent" name="consent" type="checkbox" value="yes" required>
+                <span>I agree to receive news from Born Outline and have read the <a href="#privacy">Privacy Policy</a>.</span>
+              </label>
+              <input type="text" name="email_address_check" value="" class="input--hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <input type="hidden" name="locale" value="es">
+            </form>
+          </div>
+        </div>
   </main>
 
   <section class="drawer" id="archive" aria-label="Archive">
@@ -587,79 +618,19 @@
 
 
 <script>
-  // Los registros van a Brevo (lista "Su primera lista"), que envía el email de bienvenida.
-  const BREVO_FORM_URL = "https://4813e819.sibforms.com/serve/MUIFACJaauiM1SZYxFGajGkM8hJ8ln8hAW07TIJVL2el9utsYrRvMHMcOpBYssQV66Gm1miVIqrWww1jH-XyaFtOff7tus36ggQYJGsSHyTrBUin70blk4pqbfNVadBD76HiLIXfLcEZ5OlwPx1NReuLENSyIMe8IMM-HgqSZwyZEF2Zf6hbn5Ehd4KkIvhSqmSZLeGM9qCENcXBTQ==";
-
-  // Fuera de bornoutline.com (por ejemplo en la vista previa) no se envía nada.
-  const LIVE = /(^|\.)bornoutline\.com$|\.github\.io$/.test(location.hostname);
-
-  const form = document.getElementById("join");
-  const email = document.getElementById("email");
-  const consent = document.getElementById("consent");
-  const msg = document.getElementById("msg");
-
-  function sendToBrevo(address) {
-    let frame = document.getElementById("brevo-frame");
-    if (!frame) {
-      frame = document.createElement("iframe");
-      frame.id = "brevo-frame";
-      frame.name = "brevo-frame";
-      frame.title = "Sign-up";
-      frame.hidden = true;
-      document.body.appendChild(frame);
-    }
-    const f = document.createElement("form");
-    f.method = "POST";
-    f.action = BREVO_FORM_URL;
-    f.target = "brevo-frame";
-    f.hidden = true;
-    [["EMAIL", address], ["email_address_check", ""], ["locale", "en"]].forEach(([n, v]) => {
-      const i = document.createElement("input");
-      i.type = "hidden"; i.name = n; i.value = v;
-      f.appendChild(i);
-    });
-    document.body.appendChild(f);
-    f.submit();
-    setTimeout(() => f.remove(), 5000);
-  }
-
-  function say(text, isErr) {
-    msg.textContent = text;
-    msg.classList.toggle("err", !!isErr);
-  }
-
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-    const value = email.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      say("Enter a valid email address.", true);
-      email.focus();
-      return;
-    }
-    if (!consent.checked) {
-      say("Tick the box to agree to receive news.", true);
-      return;
-    }
-    if (!LIVE) {
-      say("Preview: sign-ups go live once the site is on its domain.");
-      return;
-    }
-    if (form.company.value) return; // campo trampa para robots
-    say("Sending\u2026");
-    try {
-      // Google no deja leer su respuesta desde otra web (no-cors); si la petición sale, damos el alta por hecha.
-      // Brevo no deja leer su respuesta desde otra web (no-cors); si la petición sale, damos el alta por hecha.
-      // Envío como formulario normal dentro de un marco oculto (sin bloqueos del navegador).
-      sendToBrevo(value);
-      await new Promise(r => setTimeout(r, 900));
-      form.reset();
-      consent.checked = false;
-      say("Request received. Check your inbox \u2014 your letter is on its way.");
-    } catch {
-      say("Could not join right now. Check your connection and try again.", true);
-    }
-  });
+  // Ajustes que lee el programa oficial de Brevo (main.js).
+  window.REQUIRED_CODE_ERROR_MESSAGE = "Choose a country code";
+  window.LOCALE = "es";
+  window.EMAIL_INVALID_MESSAGE = window.SMS_INVALID_MESSAGE = "Enter a valid email address.";
+  window.REQUIRED_ERROR_MESSAGE = "Enter your email address.";
+  window.GENERIC_INVALID_MESSAGE = "Check the email address and try again.";
+  window.INVALID_NUMBER = "Check the email address and try again.";
+  window.INVALID_DATE = "Enter a valid date.";
+  window.REQUIRED_MULTISELECT_MESSAGE = "Select at least one option.";
+  window.translation = { common: { selectedList: "{quantity} list selected", selectedLists: "{quantity} lists selected", selectedOption: "{quantity} selected", selectedOptions: "{quantity} selected" } };
+  var AUTOHIDE = Boolean(0);
 </script>
+<script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
 
 <script>
   // Carpeta: la portada gira sobre su borde izquierdo y deja ver la carta.
