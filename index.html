@@ -339,6 +339,7 @@
   /* Brevo: paneles de mensaje ocultos hasta que su programa los muestre */
   .sib-form-message-panel { display: none; margin: 0; }
   .sib-form-message-panel.msg.err { color: var(--error); }
+  .ver { opacity: .5; }
   .input--hidden { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
   #sib-container, #sib-form-container { display: grid; gap: 14px; }
   #sib-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 980px; }
@@ -450,37 +451,20 @@
   <main class="hero" id="club">
     <p class="kicker">Join the Club</p>
     <h1 class="statement">Early access to the first collection.</h1>
-        <!-- Formulario oficial de Brevo con el diseño de la web (lo envía el programa de Brevo, main.js). -->
-        <div id="sib-form-container" class="sib-form-container">
-          <div id="error-message" class="sib-form-message-panel msg err" role="alert">
-            <span class="sib-form-message-panel__inner-text">We could not validate your request. Check your email address and try again.</span>
+        <!-- Formulario normal que se envía directamente a Brevo (igual que su enlace). -->
+        <form id="sib-form" method="POST" action="https://4813e819.sibforms.com/serve/MUIFACJaauiM1SZYxFGajGkM8hJ8ln8hAW07TIJVL2el9utsYrRvMHMcOpBYssQV66Gm1miVIqrWww1jH-XyaFtOff7tus36ggQYJGsSHyTrBUin70blk4pqbfNVadBD76HiLIXfLcEZ5OlwPx1NReuLENSyIMe8IMM-HgqSZwyZEF2Zf6hbn5Ehd4KkIvhSqmSZLeGM9qCENcXBTQ==">
+          <div class="field">
+            <input type="email" id="EMAIL" name="EMAIL" autocomplete="email" placeholder="Email address" aria-label="Email" required>
+            <button type="submit">Join →</button>
           </div>
-          <div id="success-message" class="sib-form-message-panel msg" role="status">
-            <span class="sib-form-message-panel__inner-text">Request received. Check your inbox — your letter is on its way.</span>
-          </div>
-          <div id="sib-container">
-            <form id="sib-form" method="POST" action="https://4813e819.sibforms.com/serve/MUIFACJaauiM1SZYxFGajGkM8hJ8ln8hAW07TIJVL2el9utsYrRvMHMcOpBYssQV66Gm1miVIqrWww1jH-XyaFtOff7tus36ggQYJGsSHyTrBUin70blk4pqbfNVadBD76HiLIXfLcEZ5OlwPx1NReuLENSyIMe8IMM-HgqSZwyZEF2Zf6hbn5Ehd4KkIvhSqmSZLeGM9qCENcXBTQ==" data-type="subscription">
-              <div class="sib-input sib-form-block">
-                <div class="form__entry entry_block">
-                  <div class="field entry__field">
-                    <input class="input" type="email" id="EMAIL" name="EMAIL" autocomplete="email" placeholder="Email address" aria-label="Email" data-required="true" required>
-                    <button class="sib-form-block__button sib-form-block__button-with-loader" form="sib-form" type="submit">
-                      <svg class="icon clickable__icon progress-indicator__icon sib-hide-loader-icon" viewBox="0 0 512 512" aria-hidden="true"><path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-131.652-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z"/></svg>
-                      Join →
-                    </button>
-                  </div>
-                  <label class="entry__error entry__error--primary"></label>
-                </div>
-              </div>
-              <label class="consent" for="consent">
-                <input id="consent" name="consent" type="checkbox" value="yes" required>
-                <span>I agree to receive news from Born Outline and have read the <a href="#privacy">Privacy Policy</a>.</span>
-              </label>
-              <input type="text" name="email_address_check" value="" class="input--hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
-              <input type="hidden" name="locale" value="es">
-            </form>
-          </div>
-        </div>
+          <label class="consent" for="consent">
+            <input id="consent" type="checkbox" required>
+            <span>I agree to receive news from Born Outline and have read the <a href="#privacy">Privacy Policy</a>.</span>
+          </label>
+          <input type="text" name="email_address_check" value="" class="input--hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <input type="hidden" name="locale" value="es">
+          <p class="msg" id="joined" role="status" hidden>Request received. Check your inbox — your letter is on its way.</p>
+        </form>
   </main>
 
   <section class="drawer" id="archive" aria-label="Archive">
@@ -534,7 +518,7 @@
   </section>
 
   <footer>
-    <span>© 2026 Born Outline. All rights reserved.</span>
+    <span>© 2026 Born Outline. All rights reserved. <span class="ver">v3</span></span>
     <nav class="legal-links" aria-label="Legal">
       <a href="#privacy">Privacy Policy</a><a href="#cookies">Cookie Policy</a><a href="#legal">Note legali</a>
     </nav>
@@ -618,19 +602,13 @@
 
 
 <script>
-  // Ajustes que lee el programa oficial de Brevo (main.js).
-  window.REQUIRED_CODE_ERROR_MESSAGE = "Choose a country code";
-  window.LOCALE = "es";
-  window.EMAIL_INVALID_MESSAGE = window.SMS_INVALID_MESSAGE = "Enter a valid email address.";
-  window.REQUIRED_ERROR_MESSAGE = "Enter your email address.";
-  window.GENERIC_INVALID_MESSAGE = "Check the email address and try again.";
-  window.INVALID_NUMBER = "Check the email address and try again.";
-  window.INVALID_DATE = "Enter a valid date.";
-  window.REQUIRED_MULTISELECT_MESSAGE = "Select at least one option.";
-  window.translation = { common: { selectedList: "{quantity} list selected", selectedLists: "{quantity} lists selected", selectedOption: "{quantity} selected", selectedOptions: "{quantity} selected" } };
-  var AUTOHIDE = Boolean(0);
+  // Al volver de Brevo (redirección a bornoutline.com/#joined) se muestra la confirmación.
+  function showJoined() {
+    if (location.hash === "#joined") document.getElementById("joined").hidden = false;
+  }
+  showJoined();
+  window.addEventListener("hashchange", showJoined);
 </script>
-<script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
 
 <script>
   // Carpeta: la portada gira sobre su borde izquierdo y deja ver la carta.
