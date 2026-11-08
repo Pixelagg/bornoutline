@@ -529,7 +529,7 @@
       </ul>
 
       <h3>4. Who processes it for us</h3>
-      <p>The website is hosted by GitHub, Inc. (USA) through GitHub Pages. Your email address is stored in Google Sheets and club letters are sent through Gmail (Google Ireland Ltd. / Google LLC), which act as our data processors. Fonts are served by Google Fonts (Google Ireland Ltd. / Google LLC), which receives your IP address when the page loads. Transfers to the USA are covered by the EU–US Data Privacy Framework and/or the European Commission’s Standard Contractual Clauses. We do not sell or rent your data to anyone.</p>
+      <p>The website is hosted by GitHub, Inc. (USA) through GitHub Pages. Your email address and club letters are managed with Brevo (Sendinblue SAS, France), which acts as our data processor. Fonts are served by Google Fonts (Google Ireland Ltd. / Google LLC), which receives your IP address when the page loads. Transfers to the USA are covered by the EU–US Data Privacy Framework and/or the European Commission’s Standard Contractual Clauses. We do not sell or rent your data to anyone.</p>
 
       <h3>5. How long we keep it</h3>
       <p>We keep your email until you unsubscribe or ask us to delete it. Technical logs are kept by the hosting provider for a short period, as set by its own policy.</p>
@@ -587,9 +587,8 @@
 
 
 <script>
-  // Los registros van a la hoja de Google "Born Outline — Club", que además envía el email de bienvenida.
-  // Pega aquí la URL de la aplicación web de Google Apps Script (termina en /exec).
-  const SIGNUP_URL = "https://script.google.com/macros/s/AKfycbw021bW4sRcQfpnbUnf2QoGUU7Wa9SKk3fSWYzHsx-JxBL0h-_gmIBohmaWrBW9POOcVw/exec";
+  // Los registros van a Brevo (lista "Su primera lista"), que envía el email de bienvenida.
+  const BREVO_FORM_URL = "https://4813e819.sibforms.com/serve/MUIFACJaauiM1SZYxFGajGkM8hJ8ln8hAW07TIJVL2el9utsYrRvMHMcOpBYssQV66Gm1miVIqrWww1jH-XyaFtOff7tus36ggQYJGsSHyTrBUin70blk4pqbfNVadBD76HiLIXfLcEZ5OlwPx1NReuLENSyIMe8IMM-HgqSZwyZEF2Zf6hbn5Ehd4KkIvhSqmSZLeGM9qCENcXBTQ==";
 
   // Fuera de bornoutline.com (por ejemplo en la vista previa) no se envía nada.
   const LIVE = /(^|\.)bornoutline\.com$|\.github\.io$/.test(location.hostname);
@@ -598,6 +597,31 @@
   const email = document.getElementById("email");
   const consent = document.getElementById("consent");
   const msg = document.getElementById("msg");
+
+  function sendToBrevo(address) {
+    let frame = document.getElementById("brevo-frame");
+    if (!frame) {
+      frame = document.createElement("iframe");
+      frame.id = "brevo-frame";
+      frame.name = "brevo-frame";
+      frame.title = "Sign-up";
+      frame.hidden = true;
+      document.body.appendChild(frame);
+    }
+    const f = document.createElement("form");
+    f.method = "POST";
+    f.action = BREVO_FORM_URL;
+    f.target = "brevo-frame";
+    f.hidden = true;
+    [["EMAIL", address], ["email_address_check", ""], ["locale", "en"]].forEach(([n, v]) => {
+      const i = document.createElement("input");
+      i.type = "hidden"; i.name = n; i.value = v;
+      f.appendChild(i);
+    });
+    document.body.appendChild(f);
+    f.submit();
+    setTimeout(() => f.remove(), 5000);
+  }
 
   function say(text, isErr) {
     msg.textContent = text;
@@ -620,18 +644,14 @@
       say("Preview: sign-ups go live once the site is on its domain.");
       return;
     }
-    if (!SIGNUP_URL) {
-      say("The club opens very soon. Please come back in a few days.");
-      return;
-    }
+    if (form.company.value) return; // campo trampa para robots
     say("Sending\u2026");
     try {
       // Google no deja leer su respuesta desde otra web (no-cors); si la petición sale, damos el alta por hecha.
-      await fetch(SIGNUP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: new URLSearchParams({ email: value, consent: "yes", company: form.company.value })
-      });
+      // Brevo no deja leer su respuesta desde otra web (no-cors); si la petición sale, damos el alta por hecha.
+      // Envío como formulario normal dentro de un marco oculto (sin bloqueos del navegador).
+      sendToBrevo(value);
+      await new Promise(r => setTimeout(r, 900));
       form.reset();
       consent.checked = false;
       say("Request received. Check your inbox \u2014 your letter is on its way.");
